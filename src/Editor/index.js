@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import Quill from 'quill';
+import moment from "moment";
+import { uploadAction, sendInitReq } from './helper';
 import 'quill/dist/quill.snow.css';
 import 'quill/dist/quill.bubble.css';
 import 'quill/dist/quill.core.css';
@@ -13,7 +15,7 @@ const toolbarOptions = [
   [{ 'list': 'ordered'}, { 'list': 'bullet' }],
   [{ 'script': 'sub'}, { 'script': 'super' }],
   [{ 'indent': '-1'}, { 'indent': '+1' }],
-  [{ 'direction': 'rtl' }],                      
+  [{ 'direction': 'rtl' }],
   [{ 'color': [] }, { 'background': [] }],
   [{ 'align': [] }],
   ['link', 'image'],
@@ -32,19 +34,39 @@ const quillOptions = {
 class Editor extends Component {
   constructor(props) {
     super(props);
-    this.handleSend = this.handleSend.bind(this);
     this.quillRef = null;
+    this.editor = null;
+    this.timestamp = 0;
+    this.peerCreated = props.peerCreated;
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.peerCreated = nextProps.peerCreated;
   }
 
   componentDidMount() {
     this.editor = new Quill(this.quillRef, quillOptions);
+
+    if (this.props.type === "webrtc") {
+      sendInitReq(this.props.rtc)
+      .then((snap) => {
+        var content = snap.data.payload.content;
+        this.editor.setContents(content, "api");
+      })
+      .catch((err) => {
+        console.log("fuck", err);
+      });
+    }
 
     this.editor.on("text-change", (delta, oldDelta, source) => {
       console.log("delta => ", delta);
       console.log("oldDelta => ", oldDelta);
       console.log("source => ", source);
       if (source === "user") {
-        this.props.rtc.sendDirectlyToAll("editor", "delta", { data: delta });
+        var action = delta;
+        var timestamp = moment().valueOf();
+        this.timestamp = timestamp;
+        uploadAction(action, this.props.fb, this.props.rtc, this.props.type, timestamp);
       }
     });
 
@@ -53,16 +75,32 @@ class Editor extends Component {
       console.log("room =>", room);
       console.log("label =>", label);
       console.log("message => ", message);
-      this.editor.updateContents(message.payload.data, "api");
+      if (label === "editor" && message.type === "initReq") {
+        var content = this.editor.getContents();
+        this.props.rtc.sendDirectlyToAll("editor", "initRes", { content: content });
+      }
+      if (label === "editor" && message.type === "action") {
+        this.editor.updateContents(message.payload.action, "api");
+        this.timestamp = message.payload.timestamp;
+      }
+    });
+
+    this.props.fb.on('child_added', (snap) => {
+      var content = snap.val();
+      if (content.timestamp !== this.timestamp) {
+        console.log("now the lastest timestamp, updating");
+        this.editor.updateContents(content.action, "api");
+        this.timestamp = content.timestamp;
+      }
     });
   }
 
-  handleSend() {
-    console.log("sending message");
-    this.props.rtc.sendDirectlyToAll("test_label", "test_msg", {
-      type: "test",
-      msg: "see if it works"
-    });
+  renderLoading() {
+    return(
+      <div>
+        
+      </div>
+    );
   }
 
   render() {
@@ -71,9 +109,6 @@ class Editor extends Component {
         <div
           className="quill-editor-container"
           ref={(ref) => this.quillRef = ref}></div>
-        <button onClick={this.handleSend}>
-          Send test message
-        </button>
       </div>
     );
   }

@@ -2,30 +2,39 @@ import React, { Component } from 'react';
 import Editor from './Editor';
 import SimpleWebrtc from 'simplewebrtc/src/simplewebrtc';
 import './App.css';
+import * as firebase from 'firebase';
 
 class App extends Component {
 
   constructor(props) {
     super(props);
+    this.state = {
+      roomJoined:  false,
+      peerCreated: false,
+      connected: false,
+    };
     this.rtc = new SimpleWebrtc({
       localVideoEl: '',
       remoteVideosEl: '',
       autoRequestMedia: false,
       url: "https://acumany-signal-master.herokuapp.com/",
     });
+    this.fb = firebase.database().ref("/TestEditor");
   }
 
   componentDidMount() {
     this.rtc.on('connectionReady', (sessionId) => {
       console.log("sessionId => ", sessionId);
-      this.rtc.joinRoom("test_room", (err, description) => {
-        console.log("err => ", err);
-        console.log("description => ", description);
+      this.setState({ connected: true });
+      this.rtc.joinRoom("test_room", () => {
+        this.rtc.sendDirectlyToAll("editor", "initChannel", null);
+        this.setState({ roomJoined: true });
       });
     })
 
     this.rtc.on('createdPeer', (peer) => {
       console.log(peer);
+      this.setState({ peerCreated: true });
     });
 
   }
@@ -33,7 +42,11 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <Editor rtc={this.rtc}/>
+        <Editor
+          rtc={this.rtc}
+          fb={this.fb}
+          type="webrtc"
+          />
       </div>
     );
   }
