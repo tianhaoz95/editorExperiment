@@ -84,3 +84,23 @@ export function sendInitReq(rtc) {
     });
   });
 }
+
+export function PrintElem(elem)
+{
+    var mywindow = window.open('', 'PRINT');
+
+    var title = "<title>Here is your document</title>";
+
+    var header = title;
+
+    mywindow.document.write('<html><head>' + header + '</head><body >');
+    mywindow.document.write(elem.innerHTML);
+    mywindow.document.write('</body></html>');
+
+    mywindow.document.close(); // necessary for IE >= 10
+    mywindow.focus(); // necessary for IE >= 10*/
+
+    mywindow.print();
+
+    return true;
+}

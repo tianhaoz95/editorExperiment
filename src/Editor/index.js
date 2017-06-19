@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import Quill from 'quill';
 import moment from "moment";
-import { uploadAction, sendInitReq } from './helper';
+import { uploadAction, sendInitReq, PrintElem } from './helper';
+import { Button } from 'antd';
 import 'quill/dist/quill.snow.css';
 import 'quill/dist/quill.bubble.css';
 import 'quill/dist/quill.core.css';
@@ -34,10 +35,14 @@ const quillOptions = {
 class Editor extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      loading: true,
+    };
     this.quillRef = null;
     this.editor = null;
     this.timestamp = 0;
     this.peerCreated = props.peerCreated;
+    this.handlePrint = this.handlePrint.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -46,15 +51,18 @@ class Editor extends Component {
 
   componentDidMount() {
     this.editor = new Quill(this.quillRef, quillOptions);
+    this.editor.enable(false);
 
     if (this.props.type === "webrtc") {
       sendInitReq(this.props.rtc)
       .then((snap) => {
         var content = snap.data.payload.content;
         this.editor.setContents(content, "api");
+        this.editor.enable(true);
       })
       .catch((err) => {
         console.log("fuck", err);
+        this.editor.enable(true);
       });
     }
 
@@ -95,12 +103,8 @@ class Editor extends Component {
     });
   }
 
-  renderLoading() {
-    return(
-      <div>
-        
-      </div>
-    );
+  handlePrint() {
+    PrintElem(this.quillRef);
   }
 
   render() {
@@ -109,6 +113,14 @@ class Editor extends Component {
         <div
           className="quill-editor-container"
           ref={(ref) => this.quillRef = ref}></div>
+        <Button
+          onClick={this.handlePrint}
+          icon="download"
+          type="primary"
+          className="quill-editor-print-btn"
+          >
+          Download the document
+        </Button>
       </div>
     );
   }
