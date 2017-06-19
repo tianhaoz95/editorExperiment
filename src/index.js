@@ -4,6 +4,8 @@ import App from './App';
 import registerServiceWorker from './registerServiceWorker';
 import './index.css';
 import * as firebase from 'firebase';
+import 'semantic-ui-css/semantic.min.css';
+import './semantic/dist/semantic.min.css';
 
 var config = {
   apiKey: "AIzaSyAkfhXbHKoSuF0X3zjvvJpEgka847punOk",

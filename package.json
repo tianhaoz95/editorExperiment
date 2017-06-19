@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
-    "react-scripts": "1.0.7"
+    "react-scripts": "1.0.7",
+    "semantic-ui": "^2.2.10"
   },
   "dependencies": {
     "antd": "^2.11.1",
@@ -12,6 +13,9 @@
     "quill": "^1.2.6",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
+    "react-infinite": "^0.11.0",
+    "semantic-ui-css": "^2.2.10",
+    "semantic-ui-react": "^0.68.5",
     "simplewebrtc": "^3.0.0",
     "webrtc-adapter": "^4.0.2"
   },

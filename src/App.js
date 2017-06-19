@@ -3,6 +3,13 @@ import Editor from './Editor';
 import SimpleWebrtc from 'simplewebrtc/src/simplewebrtc';
 import './App.css';
 import * as firebase from 'firebase';
+import Chat from './Chat';
+import { Row, Col } from 'antd';
+
+const userInfo = {
+  name: "Tyan Chiau",
+  photo: "https://raw.githubusercontent.com/tianhaoz95/pics/master/personal_avatar.png"
+};
 
 class App extends Component {
 
@@ -19,7 +26,8 @@ class App extends Component {
       autoRequestMedia: false,
       url: "https://acumany-signal-master.herokuapp.com/",
     });
-    this.fb = firebase.database().ref("/TestEditor");
+    this.editorFB = firebase.database().ref("/TestEditor");
+    this.msgFB = firebase.database().ref("/TestMessage");
   }
 
   componentDidMount() {
@@ -42,11 +50,23 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <Editor
-          rtc={this.rtc}
-          fb={this.fb}
-          type="webrtc"
-          />
+        <Row>
+          <Col span="20">
+            <Editor
+              rtc={this.rtc}
+              fb={this.editorFB}
+              type="webrtc"
+              />
+          </Col>
+          <Col span="4">
+            <Chat
+              rtc={this.rtc}
+              fb={this.msgFB}
+              type="webrtc"
+              userInfo={userInfo}
+              />
+          </Col>
+        </Row>
       </div>
     );
   }
